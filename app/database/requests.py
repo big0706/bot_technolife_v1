@@ -66,16 +66,6 @@ async def get_employs() -> list[User]:
                                                                        Role.SELLER.value])))
 
 
-async def get_stuff_id() -> list[int]:
-    async with async_session() as session:
-        users: list[User] = await session.scalars(select(User).where(User.role.in_(
-                                                        [Role.ADMIN.value, Role.MANAGER.value, Role.SELLER.value])))
-        list_id = []
-        for u in users:
-            list_id.append(u.telegram_id)
-        return list_id
-
-
 async def get_admins_id() -> list[int]:
     async with async_session() as session:
         users: list[User] = await session.scalars(select(User).where(User.role == Role.ADMIN.value))
@@ -88,6 +78,16 @@ async def get_admins_id() -> list[int]:
 async def get_manager_id() -> list[int]:
     async with async_session() as session:
         users: list[User] = await session.scalars(select(User).where(User.role == Role.MANAGER.value))
+        list_id = []
+        for u in users:
+            list_id.append(u.telegram_id)
+        return list_id
+
+
+async def get_stuff_id() -> list[int]:
+    async with async_session() as session:
+        users: list[User] = await session.scalars(select(User).where(User.role.in_(
+                                                        [Role.ADMIN.value, Role.MANAGER.value, Role.SELLER.value])))
         list_id = []
         for u in users:
             list_id.append(u.telegram_id)

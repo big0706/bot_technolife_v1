@@ -19,7 +19,8 @@ async def start_command(message: Message):
     if await request.is_guest(message.from_user.id):
         await request.set_user(message.from_user.id, message.from_user.username)
     await message.answer('Хей! Сейчас проверю, есть ли у тебя доступ.\n'
-                         'Жми на каталог', reply_markup=kb.main)
+                         'Жми на каталог',
+                         reply_markup=kb.main)
 
 
 @router.message(Command("help"))
@@ -29,15 +30,20 @@ async def help_command(message: Message):
                          reply_markup=kb.main)
 
 
-# Уровень доступа: Admin, Manager, Seller
 @router.message(F.text.lower() == 'главная', filters.isStuff())
 async def main(message: Message):
     await message.answer(f'Доступные опции:', reply_markup=await kb.cmd_menu(message.from_user.id))
 
 
+@router.message(F.text.lower() == "каталог", filters.isStuff())
+async def catalog(message: Message):
+    await message.answer('Выбери категорию товара:', reply_markup=await kb.categories())
+
+
+# Назначение сотрудника из списка пользователей
 @router.callback_query(F.data.startswith("set_member"), filters.isAdmin())
 async def set_member(callback: CallbackQuery):
-    await callback.message.answer('Список пользователей по "Telegram ID":', reply_markup=await kb.set_member())
+    await callback.message.answer('Выберите пользователя из списка:', reply_markup=await kb.set_member())
 
 
 @router.callback_query(F.data.startswith("set_"), filters.isAdmin())
@@ -68,13 +74,13 @@ async def set_phone(message: Message, state: FSMContext):
     dt = await state.get_data()
     await message.answer(f'Пользователь: {dt["first_name"]} {dt["last_name"]}\n'
                          f'Статус: {Role.SELLER.value}\n'
-                         f'Телефон номер: {dt["phone"]}\n'
-                         'Успешно добавлен')
+                         f'Телефон номер: {dt["phone"]}')
     await request.set_employ(dt["telegram_id"], dt["first_name"], dt["last_name"], dt["phone"])
+    await message.answer('Сотрудник успешно добавлен')
     await state.clear()
 
 
-# Уровень доступа: Admin, Manager
+# Анкета пользоваля по id, с дополнительным функционалом для роли: admin
 @router.callback_query(F.data.startswith("user_"), filters.isStuff())
 async def user(callback: CallbackQuery):
     user_dt: User = await request.get_user_by_id(int(callback.data.split('_')[1]))
@@ -86,36 +92,35 @@ async def user(callback: CallbackQuery):
         await callback.message.answer('Сменить роль:', reply_markup=await kb.set_role(user_dt.telegram_id))
 
 
-# Уровень доступа: Admin, Manager
-@router.callback_query(F.data == "employs", filters.isAdmin(), filters.isManager())
-async def employ(callback: CallbackQuery):
-    await callback.message.answer('Список сотрудников:', reply_markup=await kb.employs())
-
-
-@router.callback_query(F.data == "all_users", filters.isAdmin(), filters.isManager())
-async def all_users(callback: CallbackQuery):
-    await callback.message.answer('Все гости:', reply_markup=await kb.list_guests())
-
-
-@router.message(F.text.lower() == "каталог", filters.isStuff())
-async def catalog(message: Message):
-    await message.answer('Выбери категорию товара:', reply_markup=await kb.categories())
-
-
-@router.callback_query(F.data.startswith("role_"))
+# Смена роли пользователя
+@router.callback_query(F.data.startswith("role_"), filters.isAdmin())
 async def set_role(callback: CallbackQuery):
     await request.set_role(int(callback.data.split('_')[1]), str(callback.data.split('_')[2]))
     await callback.message.answer('Успешно')
 
 
-@router.callback_query(F.data.startswith("category_"))
+# Список зарегистрированных сотрудников
+@router.callback_query(F.data == "employs", filters.isAdmin() or filters.isManager())
+async def employ(callback: CallbackQuery):
+    await callback.message.answer('Список сотрудников:', reply_markup=await kb.employs())
+
+
+# Список не зарегистрированных пользователей
+@router.callback_query(F.data == "all_users", filters.isAdmin() or filters.isManager())
+async def all_users(callback: CallbackQuery):
+    await callback.message.answer('Все гости:', reply_markup=await kb.list_guests())
+
+
+# Список категорий
+@router.callback_query(F.data.startswith("category_"), filters.isStuff())
 async def category(callback: CallbackQuery):
     category_data = await request.get_category_by_id(int(callback.data.split('_')[1]))
     await callback.message.answer(f'Список товаров в категории {category_data.name}:',
                                   reply_markup=await kb.product(category_data.name))
 
 
-@router.callback_query(F.data.startswith("product_"), filters.isAdmin(), filters.isManager())
+# Отображение товара с дополнительным полем, для роли: admin, manager
+@router.callback_query(F.data.startswith("product_"), filters.isAdmin() or filters.isManager())
 async def product_high_access(callback: CallbackQuery):
     product_data = await request.get_product_by_id(int(callback.data.split('_')[1]))
     await callback.message.answer(f'Наименование: {product_data.name}\n'
@@ -127,6 +132,7 @@ async def product_high_access(callback: CallbackQuery):
                                   reply_markup=kb.main)
 
 
+# Отображение товара ля всех ролей
 @router.callback_query(F.data.startswith("product_"), filters.isStuff())
 async def product_low_access(callback: CallbackQuery):
     product_data = await request.get_product_by_id(int(callback.data.split('_')[1]))
@@ -138,11 +144,13 @@ async def product_low_access(callback: CallbackQuery):
                                   reply_markup=kb.main)
 
 
+# Поиск по названию
 @router.message(filters.isStuff())
 async def search(message: Message):
     await message.answer('Вот что удалось найти:', reply_markup=await kb.search_product(message.text.lower()))
 
 
-@router.message(not filters.isStuff())
+# Вывод сообщения для незарегистрированных пользователей
+@router.message()
 async def not_users(message: Message):
     await message.answer('Ой, а ты то не в списке сотрудников. Пиши админу.')

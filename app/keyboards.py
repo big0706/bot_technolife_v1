@@ -62,13 +62,6 @@ async def search_product(name: str) -> InlineKeyboardMarkup:
     return keyboard.adjust(1).as_markup()
 
 
-async def account(telegram_id: int) -> InlineKeyboardMarkup:
-    user: User = await get_user_by_id(telegram_id)
-    keyboard = InlineKeyboardBuilder()
-    keyboard.add(InlineKeyboardButton(text=user.username, callback_data=f'user_{telegram_id}'))
-    return keyboard.adjust(1).as_markup()
-
-
 async def employs() -> InlineKeyboardMarkup:
     all_employs: list[User] = await get_employs()
     keyboard = InlineKeyboardBuilder()
