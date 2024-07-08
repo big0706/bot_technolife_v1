@@ -1,18 +1,36 @@
 import asyncio
-import os
-from aiogram import Bot, Dispatcher
-from dotenv import load_dotenv
+import logging
 
-from app.handlers import router
-from app.database.models import async_main
+from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+
+from app.config_dt.config import Config, load_config
+from app.handlers import (command_handler, admin_handler, manager_handler, stuff_handler, other_handler)
+from app.models.models import async_main
+
+logger = logging.getLogger(__name__)
 
 
 async def main():
+    logging.basicConfig(level=logging.INFO,
+                        format='{filename}:{lineno} #{levelname:<8}'
+                               '[{asctime}] - {name} - {message}',
+                        style='{')
+    logger.info('Starting bot')
+
+    config: Config = load_config()
+
     await async_main()
-    load_dotenv()
-    bot = Bot(token=os.getenv('BOT_TOKEN'))
+
+    bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
-    dp.include_router(router)
+    dp.include_routers(command_handler.router,
+                       admin_handler.router,
+                       manager_handler.router,
+                       stuff_handler.router,
+                       other_handler.router)
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 
@@ -20,4 +38,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print('Interrupted by the admin')
+        logger.info('Interrupted by admin')

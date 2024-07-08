@@ -1,21 +1,13 @@
-import os
 from sqlalchemy import BigInteger, String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
-from dotenv import load_dotenv
-from enum import Enum
 
-load_dotenv()
-engine = create_async_engine(url=os.getenv('SQLALCHEMY_URL'))
+from app.config_dt.config import Config, load_config
 
+config: Config = load_config()
+
+engine = create_async_engine(url=config.db.database_url)
 async_session = async_sessionmaker(engine)
-
-
-class Role(Enum):
-    ADMIN = 'admin'
-    MANAGER = 'manager'
-    SELLER = 'seller'
-    GUEST = 'guest'
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -23,14 +15,21 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = 'users'
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    telegram_id = mapped_column(BigInteger, unique=True)
+    username: Mapped[str] = mapped_column(String(120), unique=True, nullable=True)
+
+
+class Employee(Base):
+    __tablename__ = "employees"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     telegram_id = mapped_column(BigInteger, unique=True)
-    first_name: Mapped[str] = mapped_column(String(120), nullable=True)
-    last_name: Mapped[str] = mapped_column(String(120), nullable=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=True)
+    surname: Mapped[str] = mapped_column(String(120), nullable=True)
     username: Mapped[str] = mapped_column(String(30), unique=True, nullable=True)
-    role: Mapped[str] = mapped_column(String(15), ForeignKey('roles.name'), insert_default=Role.GUEST.value)
+    role: Mapped[str] = mapped_column(String(15), ForeignKey('roles.name'))
     phone: Mapped[str] = mapped_column(String(20), nullable=True)
 
 
