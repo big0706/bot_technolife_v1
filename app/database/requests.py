@@ -4,7 +4,7 @@ from sqlalchemy import select, func, update, delete
 
 
 # Setter
-async def set_user(telegram_id: int, username: str):
+async def set_user(telegram_id: int, username: str) -> None:
     async with async_session() as session:
         user: Employee = await session.scalar(select(Employee).where(Employee.telegram_id == telegram_id))
         if not user:
@@ -12,21 +12,21 @@ async def set_user(telegram_id: int, username: str):
             await session.commit()
 
 
-async def set_role(telegram_id: int, role: str):
+async def set_role(telegram_id: int, role: str) -> None:
     async with async_session() as session:
         stmt = update(Employee).where(Employee.telegram_id == telegram_id).values(role=role)
         await session.execute(stmt)
         await session.commit()
 
 
-async def set_employee(telegram_id: int, username: str, name: str, surname: str, phone: str):
+async def set_employee(telegram_id: int, username: str, name: str, surname: str, phone: str) -> None:
     async with async_session() as session:
         session.add(Employee(telegram_id=telegram_id, username=username, name=name, surname=surname, phone=phone,
                              role=RoleEnum.SELLER.value))
         await session.commit()
 
 
-async def update_employee(telegram_id: int, name: str, surname: str, phone: str, role: str):
+async def update_employee(telegram_id: int, name: str, surname: str, phone: str, role: str) -> None:
     async with async_session() as session:
         stmt = update(Employee).where(Employee.telegram_id == telegram_id).values(name=name, surname=surname,
                                                                                   phone=phone, role=role)
@@ -37,6 +37,13 @@ async def update_employee(telegram_id: int, name: str, surname: str, phone: str,
 async def delete_user(telegram_id: int) -> None:
     async with async_session() as session:
         stmt = delete(User).where(User.telegram_id == telegram_id)
+        await session.execute(stmt)
+        await session.commit()
+
+
+async def delete_employee(telegram_id: int) -> None:
+    async with async_session() as session:
+        stmt = delete(Employee).where(Employee.telegram_id == telegram_id)
         await session.execute(stmt)
         await session.commit()
 

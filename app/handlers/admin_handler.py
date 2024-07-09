@@ -14,18 +14,18 @@ import app.database.requests as request
 router = Router()
 
 
-# router.message.filter(isAdmin())
-# router.callback_query.filter(isAdmin())
+router.message.filter(isAdmin())
+router.callback_query.filter(isAdmin())
 
 
 # Назначение нового сотрудника
 # State group
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['users_list']), isAdmin())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['users_list']))
 async def cmd_set_employee(callback: CallbackQuery):
     await callback.message.answer(text=LEXICON_RU['choice_user'], reply_markup=await kb.set_employee())
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['set_employee']), isAdmin())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['set_employee']))
 async def cmd_changing_user(callback: CallbackQuery, state: FSMContext):
     telegram_id = int(callback.data.split('_')[1])
     user: User = await request.get_user_by_id(telegram_id=telegram_id)
@@ -65,7 +65,7 @@ async def cmd_set_phone(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['update_employee']), isAdmin())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['update_employee']))
 async def change_stuff(callback: CallbackQuery, state: FSMContext):
     telegram_id = int(callback.data.split('_')[1])
     user_dt: Employee = await request.get_employee_by_id(telegram_id=telegram_id)
@@ -106,15 +106,22 @@ async def update_employee_phone(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['role']), isAdmin())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['role']))
 async def cmd_set_role(callback: CallbackQuery):
     telegram_id = int(callback.data.split('_')[1])
     role = str(callback.data.split('_')[2])
     await request.set_role(telegram_id=telegram_id, role=role)
-    await callback.message.edit_text(text=LEXICON_RU['success'])
+    await callback.answer(text=LEXICON_RU['success'])
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['user']), isAdmin())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['delete_employee']))
+async def cmd_delete_employee(callback: CallbackQuery):
+    telegram_id = int(callback.data.split('_')[1])
+    await request.delete_employee(telegram_id=telegram_id)
+    await callback.answer(text=LEXICON_RU['success'])
+
+
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['user']))
 async def user(callback: CallbackQuery):
     telegram_id = int(callback.data.split('_')[1])
     user_dt: User = await request.get_user_by_id(telegram_id)
@@ -122,6 +129,6 @@ async def user(callback: CallbackQuery):
                                           f'{LEXICON_RU['tg_id']} {user_dt.telegram_id}')
 
 
-@router.callback_query(F.data == LEXICON_CALLBACK['guests'], isAdmin())
+@router.callback_query(F.data == LEXICON_CALLBACK['guests'])
 async def cmd_all_guests(callback: CallbackQuery):
     await callback.message.answer(text=LEXICON_RU['choice_user'], reply_markup=await kb.guests_list())

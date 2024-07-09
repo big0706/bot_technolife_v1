@@ -13,7 +13,7 @@ LEXICON_RU: dict[str, str] = {
     'employee_name': '<b>Пользователь</b>: ',
     'role': '<b>Статус</b>: ',
     'phone_number': '<b>Номер телефона</b>: ',
-    'success': '<b>Данные успешно изменены!</b>',
+    'success': 'Данные успешно изменены!',
     'update_role': 'Обновить роль',
     'product_name': '<b>Наименование: </b>',
     'category': '<b>Категория: </b>',
@@ -37,7 +37,8 @@ LEXICON_BUTTON: dict[str,str] = {
     'account': 'Моя анкета',
     'employee_list': 'Список сотрудников',
     'set_employee': 'Назначить сотрудника',
-    'guests_list': 'Список гостей'
+    'guests_list': 'Список гостей',
+    'delete_employee': 'Удалить сотрудника'
 }
 
 
@@ -51,5 +52,6 @@ LEXICON_CALLBACK: dict[str,str] = {
     'users_list': 'list_users',
     'guests': 'guests',
     'category': 'category_',
-    'product': 'product_'
+    'product': 'product_',
+    'delete_employee': 'delete-employee_'
 }
