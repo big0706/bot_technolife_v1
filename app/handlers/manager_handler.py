@@ -10,10 +10,10 @@ from app.lexicon.lexicon_ru import LEXICON_RU, LEXICON_CALLBACK
 router = Router()
 
 
-# router.message(isManager())
+router.callback_query.filter(isManager())
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['product']), isManager())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['product']))
 async def product_high_access(callback: CallbackQuery):
     product_data = await request.get_product_by_id(int(callback.data.split('_')[1]))
     await callback.message.answer(text=f'{LEXICON_RU['product_name']}{product_data.name}\n'
@@ -24,3 +24,4 @@ async def product_high_access(callback: CallbackQuery):
                                        f'{LEXICON_RU['credit_price']}{int(product_data.credit_price):,}'
                                   .replace(',', ' '),
                                   reply_markup=kb.main)
+    await callback.answer()

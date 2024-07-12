@@ -13,7 +13,7 @@ main = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=LEXICON_BUTTON['main']
 
 
 # Смена роли и данных сотрудника
-async def set_role(telegram_id: int) -> InlineKeyboardMarkup:
+def set_role(telegram_id: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     buttons: list[InlineKeyboardButton] = [InlineKeyboardButton(text=RoleEnum.ADMIN.value,
                                                                 callback_data=f'{LEXICON_CALLBACK['role']}'

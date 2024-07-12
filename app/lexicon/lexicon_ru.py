@@ -28,8 +28,7 @@ LEXICON_RU: dict[str, str] = {
     'search_reply': 'Вот что удалось найти: '
 }
 
-
-LEXICON_BUTTON: dict[str,str] = {
+LEXICON_BUTTON: dict[str, str] = {
     'main': 'Главная',
     'catalog': 'Каталог',
     'example': 'Пример для поиска: вытяжка midea',
@@ -41,8 +40,7 @@ LEXICON_BUTTON: dict[str,str] = {
     'delete_employee': 'Удалить сотрудника'
 }
 
-
-LEXICON_CALLBACK: dict[str,str] = {
+LEXICON_CALLBACK: dict[str, str] = {
     'role': 'role_',
     'update_employee': 'update-employee_',
     'set_employee': 'set-employee_',

@@ -127,8 +127,10 @@ async def user(callback: CallbackQuery):
     user_dt: User = await request.get_user_by_id(telegram_id)
     await callback.message.edit_text(text=f'{LEXICON_RU['username']} {user_dt.username}\n'
                                           f'{LEXICON_RU['tg_id']} {user_dt.telegram_id}')
+    await callback.answer()
 
 
 @router.callback_query(F.data == LEXICON_CALLBACK['guests'])
 async def cmd_all_guests(callback: CallbackQuery):
     await callback.message.answer(text=LEXICON_RU['choice_user'], reply_markup=await kb.guests_list())
+    await callback.answer()

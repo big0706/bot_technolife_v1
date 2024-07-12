@@ -10,20 +10,22 @@ from app.filtres.custom_filters import isStuff
 from app.models.models import Employee
 
 router = Router()
-# router.message(isStuff())
+
+router.message(isStuff())
+router.callback_query.filter(isStuff())
 
 
-@router.message(F.text.lower() == 'главная', isStuff())
+@router.message(F.text.lower() == 'главная')
 async def cmd_main(message: Message):
     await message.answer(text=LEXICON_RU['setting'], reply_markup=await kb.cmd_menu(message.from_user.id))
 
 
-@router.message(F.text.lower() == "каталог", isStuff())
+@router.message(F.text.lower() == "каталог")
 async def cmd_catalog(message: Message):
     await message.answer(text=LEXICON_RU['catalog'], reply_markup=await kb.categories())
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['employee']), isStuff())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['employee']))
 async def account(callback: CallbackQuery):
     user_dt: Employee = await request.get_employee_by_id(int(callback.data.split('_')[1]))
     await callback.message.edit_text(text=f'{LEXICON_RU['employee_name']} {user_dt.surname} {user_dt.name}\n'
@@ -31,15 +33,17 @@ async def account(callback: CallbackQuery):
                                           f'{LEXICON_RU['phone_number']} {user_dt.phone}')
     if await request.is_admin(callback.from_user.id):
         await callback.message.answer(text=LEXICON_RU['update_role'],
-                                      reply_markup=await kb.set_role(user_dt.telegram_id))
+                                      reply_markup=kb.set_role(user_dt.telegram_id))
+    await callback.answer()
 
 
-@router.callback_query(F.data == LEXICON_CALLBACK['employees_list'], isStuff())
+@router.callback_query(F.data == LEXICON_CALLBACK['employees_list'])
 async def cmd_employees(callback: CallbackQuery):
     await callback.message.answer(text=LEXICON_RU['choice_user'], reply_markup=await kb.employees())
+    await callback.answer()
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['product']), isStuff())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['product']))
 async def product_low_access(callback: CallbackQuery):
     product_data = await request.get_product_by_id(int(callback.data.split('_')[1]))
     await callback.message.answer(text=f'{LEXICON_RU['product_name']}{product_data.name}\n'
@@ -49,15 +53,17 @@ async def product_low_access(callback: CallbackQuery):
                                        f'{LEXICON_RU['cash_price']}{int(product_data.credit_price):,}'
                                   .replace(',', ' '),
                                   reply_markup=kb.main)
+    await callback.answer()
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['category']), isStuff())
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['category']))
 async def category(callback: CallbackQuery):
     category_data = await request.get_category_by_id(int(callback.data.split('_')[1]))
     await callback.message.answer(text=f'{LEXICON_RU['category_list']}<b>{category_data.name}</b>:',
                                   reply_markup=await kb.product(category_data.name))
+    await callback.answer()
 
 
-@router.message(isStuff())
+@router.message()
 async def cmd_search(message: Message):
     await message.answer(text=LEXICON_RU['search_reply'], reply_markup=await kb.search_product(message.text.lower()))
