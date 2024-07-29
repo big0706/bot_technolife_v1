@@ -1,4 +1,6 @@
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import default_state
 from aiogram.types import Message, CallbackQuery
 
 from aiogram import Router, F
@@ -65,7 +67,7 @@ async def cmd_set_phone(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.callback_query(F.data.startswith(LEXICON_CALLBACK['update_employee']))
+@router.callback_query(F.data.startswith(LEXICON_CALLBACK['update_employee']), StateFilter(default_state))
 async def change_stuff(callback: CallbackQuery, state: FSMContext):
     telegram_id = int(callback.data.split('_')[1])
     user_dt: Employee = await request.get_employee_by_id(telegram_id=telegram_id)
@@ -79,21 +81,21 @@ async def change_stuff(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text=LEXICON_RU['input_name'])
 
 
-@router.message(Stuff.name)
+@router.message(StateFilter(Stuff.name), F.text.isalpha())
 async def update_employee_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(Stuff.surname)
     await message.answer(text=LEXICON_RU['input_surname'])
 
 
-@router.message(Stuff.surname)
+@router.message(StateFilter(Stuff.surname), F.text.isalpha())
 async def update_employee_surname(message: Message, state: FSMContext):
     await state.update_data(surname=message.text)
     await state.set_state(Stuff.phone)
     await message.answer(text=LEXICON_RU['input_phone_number'])
 
 
-@router.message(Stuff.phone)
+@router.message(StateFilter(Stuff.phone))
 async def update_employee_phone(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
     dt = await state.get_data()

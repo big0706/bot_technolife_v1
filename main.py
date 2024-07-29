@@ -9,14 +9,16 @@ from app.config_dt.config import Config, load_config
 from app.handlers import (command_handler, admin_handler, manager_handler, stuff_handler, other_handler)
 from app.models.models import async_main
 
+logging.basicConfig(level=logging.INFO,
+                    format='{filename}:{lineno} #{levelname:<8}'
+                           '[{asctime}] - {name} - {message}',
+                    style='{')
+
 logger = logging.getLogger(__name__)
 
 
 async def main():
-    logging.basicConfig(level=logging.INFO,
-                        format='{filename}:{lineno} #{levelname:<8}'
-                               '[{asctime}] - {name} - {message}',
-                        style='{')
+
     logger.info('Starting bot')
 
     config: Config = load_config()
